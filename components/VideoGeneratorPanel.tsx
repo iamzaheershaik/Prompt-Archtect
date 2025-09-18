@@ -14,8 +14,19 @@ const loadingMessages = [
     "Almost there, preparing the final cut..."
 ];
 
+// Helper to convert Blob to a Base64 Data URL
+const blobToDataURL = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(blob);
+    });
+};
+
+
 const VideoGeneratorPanel: React.FC = () => {
-    const { history } = useHistory();
+    const { history, addItemToHistory } = useHistory();
     const [isGenerating, setIsGenerating] = useState(false);
     const [operation, setOperation] = useState<any>(null);
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
@@ -64,8 +75,17 @@ const VideoGeneratorPanel: React.FC = () => {
                             setLoadingMessage("Fetching your video...");
                             const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
                             const videoBlob = await response.blob();
-                            const videoUrl = URL.createObjectURL(videoBlob);
-                            setGeneratedVideoUrl(videoUrl);
+                            const videoDataUrl = await blobToDataURL(videoBlob);
+                            setGeneratedVideoUrl(videoDataUrl);
+                            
+                            // Save to history
+                            addItemToHistory({
+                                type: 'video',
+                                videoDataUrl: videoDataUrl,
+                                prompt: activePrompt,
+                                source: 'Video Generator'
+                            });
+
                         } else {
                             throw new Error("Operation finished, but no video link was found.");
                         }
@@ -81,7 +101,7 @@ const VideoGeneratorPanel: React.FC = () => {
 
             return () => clearInterval(interval);
         }
-    }, [operation, isGenerating]);
+    }, [operation, isGenerating, activePrompt, addItemToHistory]);
 
 
     return (

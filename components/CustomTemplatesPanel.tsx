@@ -42,7 +42,7 @@ const CustomTemplatesPanel: React.FC = () => {
         try {
             const result = await generateCustomPrompt(subject, selectedTemplate.content, referenceImages);
             setGeneratedPrompt(result);
-            addItemToHistory({ type: 'prompt', prompt: result, source: `Custom: ${selectedTemplate.name}`});
+            addItemToHistory({ type: 'prompt', prompt: result, source: `Custom: ${selectedTemplate.name}`, subject: subject });
         } catch (err) {
             setError('Failed to generate prompt. Please check your template and input.');
             console.error(err);

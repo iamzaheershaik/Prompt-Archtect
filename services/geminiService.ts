@@ -25,7 +25,10 @@ import {
     CARTOON_SALOON_VIDEO_TEMPLATE,
     SONY_VIDEO_TEMPLATE,
     FORTICHE_VIDEO_TEMPLATE,
+    TRANSFORM_TEMPLATE,
+    VFX_SHOT_TEMPLATE,
 } from "../constants";
+import { wrapUserPrompt } from '../utils/security';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -61,17 +64,19 @@ const dataUriToVideoImage = (dataURI: string) => {
 
 export const enhanceSubjectWithAI = async (subject: string, images: string[] = []): Promise<string> => {
     const parts: any[] = [];
-    let prompt = `You are an expert in cinematic storytelling. `;
+    let instructionPrefix = `You are an expert in cinematic storytelling. `;
     
     const imageParts = images.map(fileToGenerativePart).filter(p => p !== null);
 
     if (imageParts.length > 0) {
-        prompt += `Analyze the following simple subject AND the provided reference image(s). Synthesize them into a more vivid, detailed, and cinematic concept. `;
+        instructionPrefix += `Analyze the following simple subject AND the provided reference image(s). Synthesize them into a more vivid, detailed, and cinematic concept. `;
         parts.push(...imageParts);
     } else {
-        prompt += `Take the following simple subject and enhance it into a more vivid, detailed, and cinematic concept. `;
+        instructionPrefix += `Take the following simple subject and enhance it into a more vivid, detailed, and cinematic concept. `;
     }
-    prompt += `Make it high-concept and visually striking. Keep it to a single, powerful sentence. Subject: "${subject}"`;
+    instructionPrefix += `Make it high-concept and visually striking. Keep it to a single, powerful sentence.`;
+    
+    const prompt = wrapUserPrompt(subject, instructionPrefix);
     parts.unshift({ text: prompt });
 
     const response = await ai.models.generateContent({
@@ -93,17 +98,19 @@ export const enhanceSubjectWithAI = async (subject: string, images: string[] = [
 
 export const getAIcinematicSuggestions = async (subject: string, images: string[] = []): Promise<Partial<PromptState>> => {
     const parts: any[] = [];
-    let prompt = `As an expert Director of Photography, `;
+    let instructionPrefix = `As an expert Director of Photography, `;
 
     const imageParts = images.map(fileToGenerativePart).filter(p => p !== null);
 
     if (imageParts.length > 0) {
-        prompt += `analyze the following subject AND reference image(s). Based on the combined context, mood, and style, choose the best cinematic options to bring the subject to life. Use the images as the primary inspiration. `;
+        instructionPrefix += `analyze the following subject AND reference image(s). Based on the combined context, mood, and style, choose the best cinematic options to bring the subject to life. Use the images as the primary inspiration. `;
         parts.push(...imageParts);
     } else {
-        prompt += `analyze the following subject and choose the best cinematic options to bring it to life. `;
+        instructionPrefix += `analyze the following subject and choose the best cinematic options to bring it to life. `;
     }
-    prompt += `Subject: "${subject}". Provide your response as a JSON object with keys for shotType, composition, artStyle, cameraAngle, cameraLens, cameraMovement, lightingStyle, timeOfDay, weather, colorGrade, renderStyle, filmStock, and postProcessingEffects.`;
+    instructionPrefix += `Provide your response as a JSON object with keys for shotType, composition, artStyle, cameraAngle, cameraLens, cameraMovement, lightingStyle, timeOfDay, weather, colorGrade, renderStyle, filmStock, and postProcessingEffects.`;
+    
+    const prompt = wrapUserPrompt(subject, instructionPrefix);
     parts.unshift({ text: prompt });
 
     const response = await ai.models.generateContent({
@@ -206,8 +213,8 @@ export const checkVideoOperationStatus = async (operation: any): Promise<any> =>
 }
 
 export const optimizePromptWithLyra = async (prompt: string, targetAi: string, style: string): Promise<OptimizerOutput> => {
-    const userRequest = `"${style}" using "${targetAi}" — ${prompt}`;
-    const fullPrompt = `${LYRA_SYSTEM_PROMPT.replace(/## WELCOME MESSAGE \(REQUIRED\).*/s, '')}\n\nHere is the user request:\n${userRequest}`;
+    const userRequest = `User Request: Optimize for "${targetAi}" with style "${style}" — ${prompt}`;
+    const fullPrompt = `${LYRA_SYSTEM_PROMPT}\n\n${userRequest}`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -219,13 +226,19 @@ export const optimizePromptWithLyra = async (prompt: string, targetAi: string, s
 
     const responseText = response.text.trim();
 
-    // Helper to extract content based on a header
+    // Helper to extract content based on an HTML tag/header
     const extractContent = (header: string, text: string): string | undefined => {
-        const regex = new RegExp(`\\*\\*${header}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i');
-        const match = text.match(regex);
+        const regex = new RegExp(`<h4>${header}:</h4>\\s*([\\s\\S]*?)(?=\\s*<h4>|$)`, 'i');
+        let match = text.match(regex);
+        
+        if (header === "Your Optimized Prompt") {
+             const preRegex = new RegExp(`<h4>Your Optimized Prompt:</h4>\\s*<pre><code>([\\s\\S]*?)</code></pre>`, 'i');
+             match = text.match(preRegex);
+        }
+
         return match?.[1].trim();
     };
-
+    
     const output: OptimizerOutput = {
         optimizedPrompt: extractContent('Your Optimized Prompt', responseText) || 'Could not extract optimized prompt.',
         whatChanged: extractContent('What Changed', responseText),
@@ -240,18 +253,18 @@ export const optimizePromptWithLyra = async (prompt: string, targetAi: string, s
 // Generic Template filler for all template types
 const generatePromptFromTemplate = async (subject: string, template: string, images: string[] = []): Promise<string> => {
     const parts: any[] = [];
-    let instruction = `You are an expert AI prompt architect. `;
+    let instructionPrefix = `You are an expert AI prompt architect. `;
     const imageParts = images.map(fileToGenerativePart).filter(p => p !== null);
 
     if (imageParts.length > 0) {
-        instruction += `Based on the user's subject AND the provided reference images, fill out the following JSON structure. Use the images as strong inspiration for mood, color, composition, and style. `;
+        instructionPrefix += `Based on the user's subject AND the provided reference images, fill out the following JSON structure. Use the images as strong inspiration for mood, color, composition, and style. `;
         parts.push(...imageParts);
     } else {
-        instruction += `Based on the user's subject, fill out the following JSON structure. `;
+        instructionPrefix += `Based on the user's subject, fill out the following JSON structure. `;
     }
-    instruction += `Replace all placeholders in brackets [LIKE_THIS] or like '{{e.g., ...}}' with specific, detailed, and creative descriptions that fit the user's subject. The final output must be a valid JSON object without any markdown formatting.`;
+    instructionPrefix += `Replace all placeholders in brackets [LIKE_THIS] or like '{{e.g., ...}}' with specific, detailed, and creative descriptions that fit the user's subject. The final output must be a valid JSON object without any markdown formatting.`;
     
-    const finalPrompt = `${instruction}\n\nUser Subject: "${subject}"\n\nTemplate:\n${template}`;
+    const finalPrompt = `${instructionPrefix}\n\nUser Subject: "${subject}"\n\nTemplate:\n${template}`;
     parts.unshift({ text: finalPrompt });
 
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: { parts } });
@@ -265,6 +278,9 @@ export const generateLaikaVideoPrompt = (s: string, i: string[]) => generateProm
 export const generateCartoonSaloonVideoPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, CARTOON_SALOON_VIDEO_TEMPLATE, i);
 export const generateSonyVideoPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, SONY_VIDEO_TEMPLATE, i);
 export const generateForticheVideoPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, FORTICHE_VIDEO_TEMPLATE, i);
+export const generateTransformPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, TRANSFORM_TEMPLATE, i);
+export const generateVfxShotPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, VFX_SHOT_TEMPLATE, i);
+
 
 // --- IMAGE TEMPLATE SERVICES ---
 export const generateAardmanPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, AARDMAN_ANIMATIONS_TEMPLATE, i);
@@ -272,46 +288,43 @@ export const generateLaikaPrompt = (s: string, i: string[]) => generatePromptFro
 export const generateCartoonSaloonPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, CARTOON_SALOON_TEMPLATE, i);
 export const generateSonyPicturesAnimationPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, SONY_PICTURES_ANIMATION_TEMPLATE, i);
 export const generateFortichePrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, FORTICHE_PRODUCTION_TEMPLATE, i);
+export const generateAirb2dPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, AIRB_2D_PROMPT_TEMPLATE, i);
+
 
 // --- CUSTOM TEMPLATE SERVICE ---
 export const generateCustomPrompt = (s: string, t: string, i: string[]) => generatePromptFromTemplate(s, t, i);
 
 // --- OTHER PROMPT SERVICES ---
 export const generateLarasRemixPrompt = (subject: string, i: string[] = []) => {
-    // This template has a very specific structure and system prompt that doesn't easily accommodate images.
-    // It's kept as a text-only generation to preserve its original function.
-    const finalPrompt = `${LARAS_PROMPT_REMIX_TEMPLATE}\n\nUser Subject: "${subject}"`;
+    const finalPrompt = wrapUserPrompt(subject, LARAS_PROMPT_REMIX_TEMPLATE);
     return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: finalPrompt }).then(res => res.text);
 };
 
 export const generateRyzenPlenderPrompt = (subject: string, i: string[] = []) => {
-    const finalPrompt = `${RYZEN_PLENDER_PROMPT_TEMPLATE}\n\nUser Subject: "${subject}"`;
+    const finalPrompt = wrapUserPrompt(subject, RYZEN_PLENDER_PROMPT_TEMPLATE);
     return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: finalPrompt }).then(res => res.text);
 };
 
 export const generatePanthfxPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, PANTHFX_PROMPT_TEMPLATE, i);
 
 export const generateCgiAdsPrompt = (s: string, i: string[]) => {
-    // This is a borderline case. We can adapt it to use the generic filler.
-    const templateWithSubject = `${CGI_ADS_PROMPT_TEMPLATE}\n\nProduct: "${s}"`;
-    return generatePromptFromTemplate(s, templateWithSubject, i);
+    // The subject is passed to generatePromptFromTemplate, which injects it correctly.
+    // No need to manually add it to the template string here.
+    return generatePromptFromTemplate(s, CGI_ADS_PROMPT_TEMPLATE, i);
 }
 
 export const generateLarasOriginalPrompt = (s: string, i: string[] = []) => {
-    // Text-only due to specific character name parsing logic.
-    const finalPrompt = `${LARAS_ORIGINAL_PROMPT_TEMPLATE}\n\nCharacter Names: "${s}"`;
+    const finalPrompt = wrapUserPrompt(s, LARAS_ORIGINAL_PROMPT_TEMPLATE);
     return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: finalPrompt }).then(res => res.text);
 };
 
 export const generateOkayPrompt = (s: string, i: string[] = []) => {
     const finalPrompt = OKAY_PROMPT_TEMPLATE.replace('{user_idea}', s);
-    // This simple template doesn't benefit much from image context in its current form.
     return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: finalPrompt }).then(res => res.text);
 };
 
 export const generateFilmMakingPrompt = (s: string, i: string[] = []) => {
     const finalPrompt = FILM_MAKING_PROMPT_TEMPLATE.replace('{user_concept}', s);
-    // Complex system prompt, better to keep as text-only for now.
     return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: finalPrompt }).then(res => res.text);
 };
 
@@ -321,10 +334,7 @@ export const generatePerCityPrompt = async (coreIdea: string, outputType: 'image
     return response.text.replace(/```(json|xml|markdown)?/g, '').trim();
 }
 
-// Updated to use the generic template filler and accept images
 export const generateAirbPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, AIRB_PROMPT_TEMPLATE, i);
-
-export const generateAirb2dPrompt = (s: string, i: string[]) => generatePromptFromTemplate(s, AIRB_2D_PROMPT_TEMPLATE, i);
 
 // These are simple string replacements, no AI call needed.
 export const generateRetro3dIconPrompt = (subject: string): string => {
@@ -337,21 +347,20 @@ export const generateRetro2dIconPrompt = (subject: string): string => {
 
 
 export const generateLogoPrompt = (s: string, logoStyle: string, i: string[] = []) => {
-    const instruction = `You are an expert brand identity designer. Your task is to generate a detailed logo design prompt in JSON format.
-1.  Parse the user's input to identify the brand name and the brand subject. Input: "${s}".
-2.  Fill out the provided JSON template with creative and appropriate details based on the brand name and subject.
-3.  The overall design must adhere to the specified logo style: "${logoStyle}".
-4.  Replace all bracketed placeholders like '[Your Brand Name Here]' with your generated content.
-The final output must be a valid JSON object.`;
-    const finalPrompt = `${instruction}\n\nTemplate:\n${LOGO_PROMPT_TEMPLATE}`;
+    const instruction = `You are an expert brand identity designer. Your task is to generate a detailed logo design prompt in JSON format. Based on the user's brand subject, the chosen logo style, and any provided reference images, fill out the following JSON structure. Use the images as strong inspiration for the logomark's concept and aesthetic. The final output must be a valid JSON object without any markdown formatting.`;
+
+    const finalPrompt = `${instruction}\n\nUser Brand Subject: "${s}"\nDesired Logo Style: "${logoStyle}"\n\nTemplate:\n${LOGO_PROMPT_TEMPLATE}`;
     
-    // Using generatePromptFromTemplate structure but with a custom instruction
     const parts: any[] = [];
     const imageParts = i.map(fileToGenerativePart).filter(p => p !== null);
-     if (imageParts.length > 0) {
+
+    if (imageParts.length > 0) {
         parts.push(...imageParts);
     }
     parts.unshift({ text: finalPrompt });
-    
-    return ai.models.generateContent({ model: 'gemini-2.5-flash', contents: { parts } }).then(res => res.text.replace(/```(json)?/g, '').trim());
+
+    return ai.models.generateContent({ 
+        model: 'gemini-2.5-flash', 
+        contents: { parts } 
+    }).then(res => res.text.replace(/```(json)?/g, '').trim());
 };

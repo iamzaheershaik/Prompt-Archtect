@@ -5,6 +5,9 @@ interface ImageUploaderProps {
   maxImages?: number;
 }
 
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesChange, maxImages = 3 }) => {
   const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -20,19 +23,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesChange, maxImages
       return;
     }
 
-    const newImages: string[] = [];
     const filePromises = Array.from(files).map(file => {
         return new Promise<string>((resolve, reject) => {
             if (!file.type.startsWith('image/')) {
-                setError('Only image files are allowed.');
-                reject(new Error('Invalid file type'));
+                reject(new Error('Only image files are allowed.'));
                 return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                reject(new Error(`File size cannot exceed ${MAX_FILE_SIZE_MB}MB.`));
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 resolve(e.target?.result as string);
             };
-            reader.onerror = (e) => reject(e);
+            reader.onerror = (e) => reject(new Error("Error reading file."));
             reader.readAsDataURL(file);
         });
     });
@@ -42,7 +48,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesChange, maxImages
         setImages(updatedImages);
         onImagesChange(updatedImages);
     }).catch(err => {
-        console.error("Error reading files:", err);
+        setError(err.message);
+        console.error("Error processing files:", err);
     });
     
     if(fileInputRef.current) {
@@ -55,6 +62,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesChange, maxImages
     const updatedImages = images.filter((_, i) => i !== index);
     setImages(updatedImages);
     onImagesChange(updatedImages);
+    setError(null);
   }, [images, onImagesChange]);
 
   return (
@@ -63,7 +71,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesChange, maxImages
             <h3 className="text-md font-bold text-gray-200">Image Reference (Optional)</h3>
             <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full font-bold">AI Analysis</span>
         </div>
-        <p className="text-xs text-gray-400 -mt-2">Upload up to {maxImages} image(s) to guide the AI's style, mood, and composition choices.</p>
+        <p className="text-xs text-gray-400 -mt-2">Upload up to {maxImages} image(s) to guide the AI's style, mood, and composition choices. Max {MAX_FILE_SIZE_MB}MB each.</p>
         
         <div className={`grid grid-cols-${Math.max(images.length + 1, 3)} gap-3`}>
             {images.map((src, index) => (

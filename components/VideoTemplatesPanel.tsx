@@ -19,10 +19,8 @@ const templateConfig = {
     [TemplateID.OkayPrompt]: { name: 'OkayPrompt', service: geminiService.generateOkayPrompt, placeholder: 'e.g., an epic fantasy battle' },
     [TemplateID.PerCity]: { name: 'PerCity', service: geminiService.generatePerCityPrompt, placeholder: 'e.g., a knight discovering a hidden city' },
     [TemplateID.RyzenPlender]: { name: 'RyzenPlender', service: geminiService.generateRyzenPlenderPrompt, placeholder: 'e.g., a cinematic spaceship fly-through' },
-    [TemplateID.Airb2d]: { name: 'Airb2D', service: geminiService.generateAirb2dPrompt, placeholder: 'e.g., a retro-futuristic ray gun' },
-    [TemplateID.Logos]: { name: 'Logos', service: geminiService.generateLogoPrompt, placeholder: 'e.g., Starlight Coffee, a cozy neighborhood cafe' },
-    [TemplateID.Retro2d]: { name: 'Retro2d', service: geminiService.generateRetro2dIconPrompt, placeholder: 'e.g., a classic film camera' },
-    [TemplateID.Retro3d]: { name: 'Retro3d', service: geminiService.generateRetro3dIconPrompt, placeholder: 'e.g., a vintage portable radio' },
+    [TemplateID.Transform]: { name: 'Transform', service: geminiService.generateTransformPrompt, placeholder: 'e.g., A modern living room transforming into a futuristic sci-fi hub' },
+    [TemplateID.VfxShot]: { name: 'VFX Shot', service: geminiService.generateVfxShotPrompt, placeholder: 'e.g., A meteor crashing into a desolate alien planet' },
 };
 
 
@@ -41,16 +39,11 @@ const templateCategories = [
     },
     {
         name: "Pro & Technical",
-        templates: [TemplateID.CgiAds, TemplateID.OkayPrompt, TemplateID.PerCity, TemplateID.RyzenPlender].sort((a, b) => templateConfig[a].name.localeCompare(templateConfig[b].name))
+        templates: [TemplateID.CgiAds, TemplateID.OkayPrompt, TemplateID.PerCity, TemplateID.RyzenPlender, TemplateID.Transform, TemplateID.VfxShot].sort((a, b) => templateConfig[a].name.localeCompare(templateConfig[b].name))
     },
-    {
-        name: "Graphic Design",
-        templates: [TemplateID.Airb2d, TemplateID.Logos, TemplateID.Retro2d, TemplateID.Retro3d].sort((a, b) => templateConfig[a].name.localeCompare(templateConfig[b].name))
-    }
 ];
 
 const perCityOutputFormats = ['JSON', 'JSON_DL', 'XML', 'DESIGN DRIVEN PROMPTS'];
-const logoStyles = ['Mascot', 'Pictorial', 'Abstract', 'Wordmark', 'Letterform', 'Emblem', 'Combination'];
 
 const VideoTemplatesPanel: React.FC = () => {
     const { addItemToHistory } = useHistory();
@@ -62,9 +55,8 @@ const VideoTemplatesPanel: React.FC = () => {
     const [selectedTemplate, setSelectedTemplate] = useState<TemplateID>(templateCategories[0].templates[0]);
     const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
-    const [perCityOutputType, setPerCityOutputType] = useState<'image' | 'video'>('image');
+    const [perCityOutputType, setPerCityOutputType] = useState<'image' | 'video'>('video');
     const [perCityOutputFormat, setPerCityOutputFormat] = useState<string>('JSON');
-    const [selectedLogoStyle, setSelectedLogoStyle] = useState<string>(logoStyles[0]);
 
     const handleGenerate = useCallback(async () => {
         setIsLoading(true);
@@ -78,21 +70,19 @@ const VideoTemplatesPanel: React.FC = () => {
             let result;
             if (selectedTemplate === TemplateID.PerCity) {
                 result = await geminiService.generatePerCityPrompt(subject, perCityOutputType, perCityOutputFormat);
-            } else if (selectedTemplate === TemplateID.Logos) {
-                result = await geminiService.generateLogoPrompt(subject, selectedLogoStyle, referenceImages);
             } else {
                 result = await config.service(subject, referenceImages);
             }
             
             setGeneratedPrompt(result);
-            addItemToHistory({ type: 'prompt', prompt: result, source: config.name });
+            addItemToHistory({ type: 'prompt', prompt: result, source: config.name, subject: subject });
         } catch (err) {
             setError('Failed to generate prompt. Please check your input and try again.');
             console.error(err);
         } finally {
             setIsLoading(false);
         }
-    }, [subject, selectedTemplate, perCityOutputType, perCityOutputFormat, selectedLogoStyle, referenceImages, addItemToHistory]);
+    }, [subject, selectedTemplate, perCityOutputType, perCityOutputFormat, referenceImages, addItemToHistory]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(generatedPrompt).then(() => {
@@ -163,19 +153,6 @@ const VideoTemplatesPanel: React.FC = () => {
                     </div>
                 )}
                 
-                {selectedTemplate === TemplateID.Logos && (
-                    <div>
-                        <h4 className="text-md font-semibold text-gray-300 mb-2">Logo Style</h4>
-                        <select 
-                            value={selectedLogoStyle} 
-                            onChange={(e) => setSelectedLogoStyle(e.target.value)}
-                            className="w-full appearance-none bg-gray-900/70 border border-gray-600 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-all duration-300"
-                        >
-                            {logoStyles.map(style => <option key={style} value={style}>{style}</option>)}
-                        </select>
-                    </div>
-                )}
-
                 <button
                     onClick={handleGenerate}
                     disabled={isLoading}

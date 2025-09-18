@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { HistoryItem, ImageHistoryItem, PromptHistoryItem } from '../types';
+import { HistoryItem, ImageHistoryItem, PromptHistoryItem, VideoHistoryItem } from '../types';
 import { useHistory } from '../contexts/HistoryContext';
 import { usePrompt } from '../contexts/PromptContext';
+import { sanitize } from '../utils/security';
 
-type Filter = 'all' | 'images' | 'prompts';
-type Tab = 'prompt' | 'image' | 'image-templates' | 'video' | 'optimizer' | 'history' | 'custom-templates';
+type Filter = 'all' | 'images' | 'videos' | 'prompts';
+type Tab = 'prompt' | 'image' | 'image-templates' | 'video' | 'video-gen' | 'optimizer' | 'history' | 'custom-templates';
 
 
 const HistoryPanel: React.FC<{
@@ -23,6 +24,9 @@ const HistoryPanel: React.FC<{
         if (filter === 'images') {
             return history.filter(item => item.type === 'image');
         }
+        if (filter === 'videos') {
+            return history.filter(item => item.type === 'video');
+        }
         if (filter === 'prompts') {
             return history.filter(item => item.type === 'prompt');
         }
@@ -34,7 +38,7 @@ const HistoryPanel: React.FC<{
             <div className="flex flex-col sm:flex-row justify-between sm:items-center">
                  <h2 className="text-xl font-bold text-cyan-400">History & Gallery</h2>
                  <div className="flex items-center space-x-2 bg-gray-900/70 p-1 rounded-lg border border-gray-600 mt-2 sm:mt-0">
-                    {(['all', 'images', 'prompts'] as Filter[]).map(f => (
+                    {(['all', 'images', 'videos', 'prompts'] as Filter[]).map(f => (
                         <button
                         key={f}
                         onClick={() => setFilter(f)}
@@ -55,7 +59,7 @@ const HistoryPanel: React.FC<{
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
                         <p className="mt-2 font-semibold">Your history is empty.</p>
-                        <p className="text-sm">Generated images and prompts will appear here automatically.</p>
+                        <p className="text-sm">Generated content will appear here automatically.</p>
                     </div>
                 </div>
             ) : (
@@ -63,6 +67,9 @@ const HistoryPanel: React.FC<{
                     {filteredHistory.map(item => {
                         if (item.type === 'image') {
                             return <ImageCard key={item.id} item={item as ImageHistoryItem} onReuse={handleReuse} onDelete={deleteHistoryItem} />;
+                        }
+                        if (item.type === 'video') {
+                            return <VideoCard key={item.id} item={item as VideoHistoryItem} onReuse={handleReuse} onDelete={deleteHistoryItem} />;
                         }
                         return <PromptCard key={item.id} item={item as PromptHistoryItem} onReuse={handleReuse} onDelete={deleteHistoryItem} />;
                     })}
@@ -101,6 +108,35 @@ const ImageCard: React.FC<{item: ImageHistoryItem, onReuse: (prompt: string) => 
     );
 };
 
+const VideoCard: React.FC<{item: VideoHistoryItem, onReuse: (prompt: string) => void, onDelete: (id: string) => void}> = ({ item, onReuse, onDelete }) => {
+    const handleDownload = () => {
+        const link = document.createElement('a');
+        link.href = item.videoDataUrl;
+        link.download = `ai-architect-video-${item.id.substring(0,8)}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+    
+    return (
+        <div className="bg-gray-900/50 rounded-lg border border-gray-700 flex flex-col overflow-hidden">
+            <video src={item.videoDataUrl} controls loop className="w-full h-auto object-cover aspect-square bg-black"/>
+            <div className="p-3 text-xs text-gray-400 flex-grow flex flex-col">
+                <p className="font-semibold text-gray-300">Prompt:</p>
+                <p className="italic line-clamp-3 flex-grow">"{item.prompt}"</p>
+                <div className="text-gray-500 mt-2">
+                    <span>{item.source}</span> | <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                </div>
+            </div>
+             <div className="grid grid-cols-3 gap-px bg-gray-700">
+                <button onClick={handleDownload} className="py-2 px-3 text-xs font-bold text-cyan-300 bg-gray-800 hover:bg-gray-700 transition-colors">Download</button>
+                <button onClick={() => onReuse(item.prompt)} className="py-2 px-3 text-xs font-bold text-cyan-300 bg-gray-800 hover:bg-gray-700 transition-colors">Reuse</button>
+                <button onClick={() => onDelete(item.id)} className="py-2 px-3 text-xs font-bold text-red-400 bg-gray-800 hover:bg-gray-700 transition-colors">Delete</button>
+            </div>
+        </div>
+    );
+};
+
 const PromptCard: React.FC<{item: PromptHistoryItem, onReuse: (prompt: string) => void, onDelete: (id: string) => void}> = ({ item, onReuse, onDelete }) => {
     const [copyStatus, setCopyStatus] = useState('Copy');
     
@@ -110,8 +146,6 @@ const PromptCard: React.FC<{item: PromptHistoryItem, onReuse: (prompt: string) =
           setTimeout(() => setCopyStatus('Copy'), 2000);
         });
     };
-    
-    const subjectForReuse = item.prompt.split(',')[0] || item.prompt;
 
     return (
          <div className="bg-gray-900/50 rounded-lg border border-gray-700 flex flex-col justify-between overflow-hidden aspect-square p-4">
@@ -121,12 +155,14 @@ const PromptCard: React.FC<{item: PromptHistoryItem, onReuse: (prompt: string) =
                     <span className="text-xs text-gray-500">{new Date(item.timestamp).toLocaleDateString()}</span>
                 </div>
                 <div className="mt-2 flex-grow overflow-hidden">
-                     <pre className="whitespace-pre-wrap text-sm text-gray-200 h-full overflow-y-auto"><code>{item.prompt}</code></pre>
+                     <pre className="whitespace-pre-wrap text-sm text-gray-200 h-full overflow-y-auto">
+                        <code>{item.prompt}</code>
+                     </pre>
                 </div>
             </div>
              <div className="grid grid-cols-3 gap-px bg-gray-700 -m-4 mt-4">
                 <button onClick={handleCopy} className="py-2 px-3 text-xs font-bold text-cyan-300 bg-gray-800 hover:bg-gray-700 transition-colors">{copyStatus}</button>
-                <button onClick={() => onReuse(subjectForReuse)} className="py-2 px-3 text-xs font-bold text-cyan-300 bg-gray-800 hover:bg-gray-700 transition-colors">Reuse</button>
+                <button onClick={() => onReuse(item.subject)} className="py-2 px-3 text-xs font-bold text-cyan-300 bg-gray-800 hover:bg-gray-700 transition-colors">Reuse</button>
                 <button onClick={() => onDelete(item.id)} className="py-2 px-3 text-xs font-bold text-red-400 bg-gray-800 hover:bg-gray-700 transition-colors">Delete</button>
             </div>
         </div>

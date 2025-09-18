@@ -45,15 +45,25 @@ export interface ImageHistoryItem {
   }
 }
 
+export interface VideoHistoryItem {
+    id: string;
+    timestamp: number;
+    type: 'video';
+    videoDataUrl: string;
+    prompt: string;
+    source: string;
+}
+
 export interface PromptHistoryItem {
   id: string;
   timestamp: number;
   type: 'prompt';
   prompt: string;
+  subject: string; // The original subject used to generate the prompt
   source: string;
 }
 
-export type HistoryItem = ImageHistoryItem | PromptHistoryItem;
+export type HistoryItem = ImageHistoryItem | PromptHistoryItem | VideoHistoryItem;
 
 export interface CustomTemplate {
   id: string;
@@ -81,17 +91,20 @@ export enum TemplateID {
   OkayPrompt = 'okay-prompt',
   PerCity = 'percity',
   RyzenPlender = 'ryzen-plender',
-  // Video - Graphic Design
+  Transform = 'transform',
+  VfxShot = 'vfx-shot',
+  // Image - Stop Motion
+  AardmanImage = 'aardman-image',
+  LaikaImage = 'laika-image',
+  // Image - Stylized
+  CartoonSaloonImage = 'cartoon-saloon-image',
+  SonyImage = 'sony-image',
+  ForticheImage = 'fortiche-image',
+  // Image - Graphic Design
   Airb2d = 'airb-2d',
   Logos = 'logos',
   Retro2d = 'retro-2d',
   Retro3d = 'retro-3d',
-  // Image
-  AardmanImage = 'aardman',
-  LaikaImage = 'laika',
-  CartoonSaloonImage = 'cartoon-saloon',
-  SonyImage = 'sony',
-  ForticheImage = 'fortiche',
 }
 
 // Type for the strategy pattern in template panels
@@ -139,7 +152,7 @@ export interface PromptContextType {
 
 export interface HistoryContextType {
   history: HistoryItem[];
-  addItemToHistory: (item: Omit<ImageHistoryItem, 'id' | 'timestamp'> | Omit<PromptHistoryItem, 'id' | 'timestamp'>) => void;
+  addItemToHistory: (item: Omit<ImageHistoryItem, 'id' | 'timestamp'> | Omit<PromptHistoryItem, 'id' | 'timestamp'> | Omit<VideoHistoryItem, 'id' | 'timestamp'>) => void;
   deleteHistoryItem: (id: string) => void;
 }
 

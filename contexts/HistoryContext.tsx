@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { HistoryItem, ImageHistoryItem, PromptHistoryItem, HistoryContextType } from '../types';
+import { HistoryItem, ImageHistoryItem, PromptHistoryItem, VideoHistoryItem, HistoryContextType } from '../types';
 
 const HISTORY_KEY = 'aiPromptArchitectHistory';
 
@@ -36,7 +36,7 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({ children })
         setHistory(getHistoryFromStorage());
     }, []);
 
-    const addItemToHistory = useCallback((item: Omit<ImageHistoryItem, 'id' | 'timestamp'> | Omit<PromptHistoryItem, 'id' | 'timestamp'>) => {
+    const addItemToHistory = useCallback((item: Omit<ImageHistoryItem, 'id' | 'timestamp'> | Omit<PromptHistoryItem, 'id' | 'timestamp'> | Omit<VideoHistoryItem, 'id' | 'timestamp'>) => {
         const newHistoryItem: HistoryItem = {
             ...item,
             id: crypto.randomUUID(),

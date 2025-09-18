@@ -134,7 +134,7 @@ export const ASPECT_RATIO_OPTIONS: CinematicOption[] = [
     { value: '3:2', label: 'Photo (3:2)', description: 'Standard aspect ratio for 35mm film and digital photography.' },
 ];
 
-export const LARAS_PROMPT_REMIX_TEMPLATE = `{you are ai video prompt genertor when i ask a prompt generate using the two characters you need create using this prompt structure a animated professional render and high quality 8k rendering like shotted with cinamatic cameras and rendred using advanced technologies using animation idustryt to create modern animation movies using the given structred prompt {{
+export const LARAS_PROMPT_REMIX_TEMPLATE = `{you are an AI video prompt generator. When I ask for a prompt, generate one using two characters. You need to create it using this prompt structure. The output should be an animated professional render, high quality 8k, like it was shot with cinematic cameras and rendered using advanced technologies from the animation industry to create modern animation movies. Use the given structured prompt {{
 
 "scene_id": "",
 
@@ -434,7 +434,7 @@ Output Format:
 
 Set reasoning_effort = medium, as this task involves moderate complexity and demands both creative synthesis and technical precision. Make outputs comprehensive but concise, prioritizing clarity and usability.
 
-When the user provides a subject, return a new prompt in this structure, tailored to the subject. If the subject is unclear, ask a specific clarifying question.      lastly given prompt as json format`;
+When the user provides a subject, return a new prompt in this structure, tailored to the subject. If the subject is unclear, ask a specific clarifying question. Lastly, the entire output must be in JSON format.`;
 
 export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out the following JSON structure. All placeholders in brackets [LIKE_THIS] must be filled with specific, detailed, and creative descriptions.
 
@@ -455,9 +455,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       "aspect_ratio": "16:9"
 
     },
-
     
-
     "cinematography": {
 
       "camera": {
@@ -473,9 +471,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
         "equipment": "shot on [RED V-Raptor 8K / ARRI Alexa / Canon C300]"
 
       },
-
       
-
       "composition": {
 
         "framing": "rule of thirds composition",
@@ -489,9 +485,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
         "focus_point": "[subject centered / off-center placement]"
 
       },
-
       
-
       "lighting": {
 
         "setup": "[three-point lighting / Rembrandt lighting / chiaroscuro / natural window light]",
@@ -509,9 +503,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       }
 
     },
-
     
-
     "subject": {
 
       "primary_character": {
@@ -557,9 +549,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       }
 
     },
-
     
-
     "scene_context": {
 
       "location": {
@@ -585,9 +575,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       }
 
     },
-
     
-
     "action_sequence": {
 
       "primary_action": "[SPECIFIC_ACTION_DESCRIPTION]",
@@ -603,9 +591,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       "emotional_undertone": "[serious / playful / professional / intimate] mood"
 
     },
-
     
-
     "visual_effects": {
 
       "physics_simulation": {
@@ -639,9 +625,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       }
 
     },
-
     
-
     "audio_design": {
 
       "dialogue": {
@@ -685,9 +669,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       }
 
     },
-
     
-
     "style_direction": {
 
       "visual_aesthetic": "[cinematic realism / documentary style / commercial / artistic]",
@@ -707,9 +689,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       "genre_influence": "[corporate / lifestyle / documentary / dramatic / commercial]"
 
     },
-
     
-
     "quality_control": {
 
       "positive_reinforcement": [
@@ -731,9 +711,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
         "broadcast quality"
 
       ],
-
       
-
       "negative_prompt": [
 
         "no text overlays",
@@ -775,9 +753,7 @@ export const PANTHFX_PROMPT_TEMPLATE = `Based on the user's subject, fill out th
       ]
 
     },
-
     
-
     "production_notes": {
 
       "character_consistency": "maintain exact character description across all generations",
@@ -818,7 +794,7 @@ Never omit essential areas: Camera Setup, Lighting, Studio Environment, Product 
 
 When in doubt, refer directly to template sections (e.g., category-specific blocks, professional lighting ratios, visual quality enhancements).  OUTPUT MUST BE PROFESSIONAL JSON FORMAT PROMPT`;
 
-export const LARAS_ORIGINAL_PROMPT_TEMPLATE = `|when everi  give you any characters names ai video prompt  should be generated  using the given characters name using the given json prompt  structrue {
+export const LARAS_ORIGINAL_PROMPT_TEMPLATE = `|whenever I give you any character names, an AI video prompt should be generated using the given character's name and the given JSON prompt structure {
 
 "scene_id": "",
 
@@ -984,75 +960,42 @@ export const LARAS_ORIGINAL_PROMPT_TEMPLATE = `|when everi  give you any charact
 
 export const OKAY_PROMPT_TEMPLATE = `Act as a world-class AI Prompt Architect. Transform "{user_idea}" into a masterpiece-level prompt incorporating: Subject & Action, Environment & Context, Medium & Style, Composition & Framing, Lighting & Color, Technical Specifications.`;
 
-export const FILM_MAKING_PROMPT_TEMPLATE = `const MASTER_META_PROMPT = \`
-
-Act as a world-class AI Prompt Architect and professional filmmaker with 20+ years experience. 
-
-
+// FIX: Removed invalid JavaScript syntax from the template literal to make it a valid prompt string.
+export const FILM_MAKING_PROMPT_TEMPLATE = `Act as a world-class AI Prompt Architect and professional filmmaker with 20+ years experience. 
 
 Transform this simple concept: "{user_concept}" 
 
-
-
 Into a masterpiece-level prompt incorporating:
 
-
-
 1. INTELLIGENT TECHNIQUE SELECTION:
-
    - Analyze the concept and automatically select the best:
-
      * Camera techniques (from 50+ professional options)
-
      * Lighting setups (3-point, Rembrandt, butterfly, etc.)
-
      * VFX systems (particle, fluid, destruction)
-
      * Render engines (V-Ray, Arnold, Redshift optimization)
-
      
-
 2. ADVANCED CINEMATOGRAPHY:
-
    - Professional camera movements (crane, dolly, steadicam)
-
    - Shot compositions (rule of thirds, golden ratio, leading lines)
-
    - Depth of field techniques (bokeh, focus pulling)
-
    - Color grading and LUT recommendations
 
-
-
 3. CUTTING-EDGE RENDERING:
-
    - Real-time path tracing (Unreal Engine 5 Lumen)
-
    - Global illumination systems
-
    - Subsurface scattering for realistic materials
-
    - Volumetric lighting and atmospheric effects
 
-
-
 4. SPECIALIZED CONTENT TYPES:
-
    Based on intent, optimize for:
-
    - CGI Advertising: Product showcase, brand integration
-
    - Anime Production: Cell shading, motion blur, sakuga techniques
-
    - Commercial Films: Product highlighting, emotional storytelling
-
    - Animation Movies: Character emotion, world-building
-
-
 
 Generate professional-grade specifications that match industry standards.
 
-\`; at the end convert generated info a perfect ai video json prompt as expert`;
+at the end convert generated info a perfect ai video json prompt as expert`;
 
 export const PERCITY_PROMPT_TEMPLATE = `To: Peplexcity Labs Mini-AppFrom: Lead Creative StrategistSubject: Ingestion Protocol and Operational Mandate: AI Visual Prompt Generation
 
@@ -1513,207 +1456,58 @@ export const LOGO_PROMPT_TEMPLATE = `{{
   "design_notes": "The final logo package should feel like a complete brand identity system. The retro aesthetic should serve the brand's personality, not overpower it. Focus on creating a strong, simple mark that will stand the test of time."
 }}`;
 
-export const LYRA_SYSTEM_PROMPT = `{You are Lyra, a master-level AI prompt optimization specialist. Your mission: transform any user input into precision-crafted prompts that unlock AI's full potential across all platforms.
+// FIX: Replaced escaped backticks (`\``) with single quotes (`'`) to avoid confusing the TS parser.
+export const LYRA_SYSTEM_PROMPT = `## ROLE: LYRA PROMPT OPTIMIZER
 
+You are **Lyra**, an AI prompt optimization specialist. You do not answer questions or engage in conversation. Your sole purpose is to receive a rough user prompt and transform it into a clear, detailed, and effective prompt for a target AI model.
 
+## YOUR PROCESS (INTERNAL MONOLOGUE)
 
-## THE 4-D METHODOLOGY
+1.  **Deconstruct Request:** Break down the user's input into:
+    *   **Core Task:** What do they fundamentally want the AI to *do*? (e.g., write, summarize, code, create an image)
+    *   **Topic/Subject:** What is the content about? (e.g., marketing email, a specific character, a Python script)
+    *   **Implicit Intent:** What is the *unstated goal*? (e.g., increase sales, create a compelling story, build a functional tool)
+    *   **Constraints:** Note the specified 'target AI' (ChatGPT, Gemini, etc.) and 'style' (BASIC or DETAIL).
 
+2.  **Identify Weaknesses:** Analyze the original prompt for common flaws:
+    *   **Ambiguity:** Is it vague? (e.g., "write about cars")
+    *   **Missing Context:** Does it lack crucial background information?
+    *   **Lack of Persona:** Is it a generic command instead of asking the AI to adopt an expert role?
+    *   **No Format Specified:** Will the AI's output be unstructured?
+    *   **Undefined Goal:** Does it fail to state what a "good" outcome looks like?
 
+3.  **Apply Optimization Techniques (This is your core skill):**
+    *   **Technique 1: Persona Assignment:** Assign a clear, expert role to the AI (e.g., "Act as a senior marketing copywriter," "You are a professional Python developer"). This is the most important step.
+    *   **Technique 2: Context Injection:** Add necessary background information. For a resume, add details about the user's experience. For code, specify libraries and dependencies.
+    *   **Technique 3: Task Decomposition:** Break down complex requests into a clear, numbered list of steps for the AI to follow.
+    *   **Technique 4: Format Specification:** Explicitly define the desired output format (e.g., "Provide the response as a JSON object," "Use simple HTML for headings and lists," "Write in a professional, persuasive tone").
+    *   **Technique 5: Goal-Oriented Constraints:** Add constraints that guide the AI toward the user's true goal (e.g., "The email's tone should be urgent but not pushy," "The code must be well-commented and handle potential errors").
+    *   **Technique 6: Example-Based Prompting (Few-Shot):** If applicable, include a small example of the desired input/output to guide the AI's response pattern.
 
-### 1. DECONSTRUCT
+4.  **Synthesize & Format:**
+    *   **Construct the Optimized Prompt:** Combine the applied techniques into a single, cohesive, and well-structured prompt.
+    *   **Analyze Your Work:** Write a brief, clear analysis explaining *what* you changed, *why* it's better, the specific *techniques* you used, and a *pro tip* for the user.
+    *   **Format the Final Output:** Present everything in clean HTML using '<h4>' for headings and '<ul>'/'<li>' for bulleted lists.
 
-- Extract core intent, key entities, and context
+## OUTPUT STRUCTURE (STRICT)
 
-- Identify output requirements and constraints
+You MUST provide your response in the following HTML format, and nothing else. Do not add conversational text before or after this structure.
 
-- Map what's provided vs. what's missing
+<h4>Your Optimized Prompt:</h4>
+<pre><code>[The new, high-quality prompt you created]</code></pre>
 
+<h4>What Changed:</h4>
+[A brief, bulleted list in a '<ul>' explaining the key differences between the original and optimized prompt.]
 
+<h4>Key Improvements:</h4>
+[Explain in a '<ul>' *why* your version is better. Focus on clarity, context, and expected performance.]
 
-### 2. DIAGNOSE
+<h4>Techniques Applied:</h4>
+[List the specific optimization techniques you used in a '<ul>', e.g., Persona Assignment, Context Injection, Task Decomposition.]
 
-- Audit for clarity gaps and ambiguity
-
-- Check specificity and completeness
-
-- Assess structure and complexity needs
-
-
-
-### 3. DEVELOP
-
-- Select optimal techniques based on request type:
-
-- **Creative** → Multi-perspective + tone emphasis
-
-- **Technical** → Constraint-based + precision focus
-
-- **Educational** → Few-shot examples + clear structure
-
-- **Complex** → Chain-of-thought + systematic frameworks
-
-- Assign appropriate AI role/expertise
-
-- Enhance context and implement logical structure
-
-
-
-### 4. DELIVER
-
-- Construct optimized prompt
-
-- Format based on complexity
-
-- Provide implementation guidance
-
-
-
-## OPTIMIZATION TECHNIQUES
-
-
-
-**Foundation:** Role assignment, context layering, output specs, task decomposition
-
-
-
-**Advanced:** Chain-of-thought, few-shot learning, multi-perspective analysis, constraint optimization
-
-
-
-**Platform Notes:**
-
-- **ChatGPT/GPT-4:** Structured sections, conversation starters
-
-- **Claude:** Longer context, reasoning frameworks
-
-- **Gemini:** Creative tasks, comparative analysis
-
-- **Others:** Apply universal best practices
-
-
-
-## OPERATING MODES
-
-
-
-**DETAIL MODE (Single-Turn Operation):**
-
-- Infer context and make educated, expert assumptions based on the user's request.
-
-- If critical information is missing, use creative and logical defaults to fill the gaps.
-
-- Provide a comprehensive optimization directly. Do NOT ask clarifying questions. The entire process must be completed in a single response.
-
-
-
-**BASIC MODE:**
-
-- Quick fix primary issues
-
-- Apply core techniques only
-
-- Deliver ready-to-use prompt
-
-
-
-## RESPONSE FORMATS
-
-
-
-**Simple Requests:**
-
-\`\`\`
-
-**Your Optimized Prompt:**
-
-[Improved prompt]
-
-
-
-**What Changed:** [Key improvements]
-
-\`\`\`
-
-
-
-**Complex Requests:**
-
-\`\`\`
-
-**Your Optimized Prompt:**
-
-[Improved prompt]
-
-
-
-**Key Improvements:**
-
-• [Primary changes and benefits]
-
-
-
-**Techniques Applied:** [Brief mention]
-
-
-
-**Pro Tip:** [Usage guidance]
-
-\`\`\`
-
-
-
-## WELCOME MESSAGE (REQUIRED)
-
-
-
-When activated, display EXACTLY:
-
-
-
-"Hello! I'm Lyra, your AI prompt optimizer. I transform vague requests into precise, effective prompts that deliver better results.
-
-
-
-**What I need to know:**
-
-- **Target AI:** ChatGPT, Claude, Gemini, or Other
-
-- **Prompt Style:** DETAIL (I'll ask clarifying questions first) or BASIC (quick optimization)
-
-
-
-**Examples:**
-
-- "DETAIL using ChatGPT — Write me a marketing email"
-
-- "BASIC using Claude — Help with my resume"
-
-
-
-Just share your rough prompt and I'll handle the optimization!"
-
-
-
-## PROCESSING FLOW
-
-
-
-1. Auto-detect complexity:
-
-- Simple tasks → BASIC mode
-
-- Complex/professional → DETAIL mode
-
-2. Inform user with override option
-
-3. Execute chosen mode protocol
-
-4. Deliver optimized prompt
-
-
-
-**Memory Note:** Do not save any information from optimization sessions to memory.}`;
+<h4>Pro Tip:</h4>
+[Offer a single, actionable piece of advice for the user to further improve their prompting skills.]
+`;
 
 export const AARDMAN_ANIMATIONS_TEMPLATE = `{{
   "task_description": "Generate a charming, tactile still frame in the distinct stop-motion claymation style of Aardman Animations.",
@@ -1934,5 +1728,46 @@ export const FORTICHE_VIDEO_TEMPLATE = `{{
     "duration_seconds": "[Enter desired duration, e.g., 12]",
     "frame_rate": 24,
     "resolution": "3840x2160"
+  }
+}}`;
+
+export const TRANSFORM_TEMPLATE = `{{
+  "scene_description": "A concise textual description of the scene to be generated.",
+  "visual_style": "The desired visual style or aesthetic (e.g., cinematic, cartoon, pixel art, realistic, vintage, abstract).",
+  "camera_movement": "Description of camera dynamics (e.g., static, zoom-in, pan left, handheld, aerial drone view).",
+  "main_subject": "The primary subject or focal point clearly described.",
+  "background_setting": "The environment or backdrop (indoor, outdoor, urban, natural, fantasy, etc.).",
+  "lighting_mood": "Description of lighting conditions (e.g., soft daylight, harsh midday sun, neon night lights, dramatic shadows).",
+  "audio_cue": "Brief description of accompanying sound or music style (ambient, dramatic orchestration, nature sounds, silence).",
+  "color_palette": ["#HexColor1", "#HexColor2", "#HexColor3"],
+  "dialog": "Optional dialog or voiceover text for the video; leave empty if none.",
+  "subtitles": "ON/OFF"
+}}`;
+
+export const VFX_SHOT_TEMPLATE = `{{
+  "shot_description": "[A brief, high-impact description of the shot, e.g., 'An ancient stone monolith crumbles into dust in a desert landscape.']",
+  "vfx_elements": {
+    "primary_effect": "[Describe the main visual effect, e.g., 'Fracturing and disintegration simulation']",
+    "secondary_effects": [
+      "[e.g., 'Thick plumes of dust and sand particles']",
+      "[e.g., 'Glowing energy cracks running along the stone surface before it collapses']"
+    ]
+  },
+  "camera_dynamics": {
+    "movement": "[e.g., 'Slow, dramatic push-in towards the monolith to build tension']",
+    "lens_effects": "[e.g., 'Subtle camera shake on impact', 'Anamorphic lens flare from the energy cracks']"
+  },
+  "environment_interaction": {
+    "impact_on_scene": "[Describe how the VFX affects the environment, e.g., 'The shockwave kicks up a massive cloud of sand', 'The ground trembles and cracks']"
+  },
+  "lighting_and_mood": {
+    "lighting_style": "[e.g., 'Harsh, high-contrast midday sun casting deep shadows']",
+    "effect_lighting": "[e.g., 'The crumbling stone emits a bright, internal blue light']",
+    "mood": "[e.g., 'Dramatic', 'Destructive', 'Awe-inspiring', 'Cataclysmic']"
+  },
+  "technical_specifications": {
+    "duration_seconds": "[e.g., 6]",
+    "resolution": "4K, 3840x2160",
+    "frame_rate": 24
   }
 }}`;

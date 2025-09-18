@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { OptimizerOutput } from '../types';
 import { useHistory } from '../contexts/HistoryContext';
 import { optimizePromptWithLyra } from '../services/geminiService';
+import { sanitize } from '../utils/security';
 
 const targetAIOptions = ['ChatGPT', 'Claude', 'Gemini', 'Other'];
 const promptStyleOptions = ['DETAIL', 'BASIC'];
@@ -27,7 +28,7 @@ const OptimizerPanel: React.FC = () => {
         try {
           const output = await optimizePromptWithLyra(roughPrompt, targetAI, promptStyle);
           setOptimizerOutput(output);
-          addItemToHistory({ type: 'prompt', prompt: output.optimizedPrompt, source: 'Optimizer' });
+          addItemToHistory({ type: 'prompt', prompt: output.optimizedPrompt, source: 'Optimizer', subject: roughPrompt });
         } catch (err) {
           setOptimizerError('Failed to optimize prompt. Please try again.');
           console.error(err);
@@ -42,6 +43,17 @@ const OptimizerPanel: React.FC = () => {
           setTimeout(() => setCopyStatus('Copy'), 2000);
         });
     };
+
+    const sanitizedOutput = useMemo(() => {
+        if (!optimizerOutput) return null;
+        return {
+            optimizedPrompt: optimizerOutput.optimizedPrompt ? sanitize(optimizerOutput.optimizedPrompt) : '',
+            whatChanged: optimizerOutput.whatChanged ? sanitize(optimizerOutput.whatChanged) : undefined,
+            keyImprovements: optimizerOutput.keyImprovements ? sanitize(optimizerOutput.keyImprovements) : undefined,
+            techniquesApplied: optimizerOutput.techniquesApplied ? sanitize(optimizerOutput.techniquesApplied) : undefined,
+            proTip: optimizerOutput.proTip ? sanitize(optimizerOutput.proTip) : undefined,
+        }
+    }, [optimizerOutput]);
 
     return (
         <div className="bg-gray-800/50 p-6 rounded-b-2xl border border-t-0 border-gray-700 flex flex-col gap-6 h-full">
@@ -91,42 +103,34 @@ const OptimizerPanel: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col space-y-4">
-                    {optimizerOutput ? (
+                    {sanitizedOutput ? (
                         <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700 space-y-4 h-full overflow-auto">
-                            <div>
-                                <h3 className="text-lg font-bold text-green-400">Your Optimized Prompt:</h3>
-                                <div className="relative mt-2 bg-gray-800 p-3 rounded-md">
-                                     <button onClick={() => handleCopy(optimizerOutput.optimizedPrompt)}
-                                        className="absolute top-2 right-2 px-3 py-1 bg-gray-700 text-gray-200 text-xs font-semibold rounded hover:bg-gray-600 transition-colors">
-                                        {copyStatus}
-                                    </button>
-                                    <pre className="whitespace-pre-wrap text-sm text-gray-200 font-sans">
-                                        <code>{optimizerOutput.optimizedPrompt}</code>
-                                    </pre>
-                                </div>
-                            </div>
-                            
-                            {optimizerOutput.keyImprovements && (
-                                <div>
-                                    <h4 className="font-semibold text-gray-200">Key Improvements:</h4>
-                                    <pre className="whitespace-pre-wrap text-sm text-gray-300 mt-1 font-sans">{optimizerOutput.keyImprovements}</pre>
-                                </div>
-                            )}
-                            {optimizerOutput.proTip && (
+                            <div dangerouslySetInnerHTML={{ __html: sanitizedOutput.optimizedPrompt }} />
+                            {sanitizedOutput.whatChanged && <div dangerouslySetInnerHTML={{ __html: sanitizedOutput.whatChanged }} />}
+                            {sanitizedOutput.keyImprovements && <div dangerouslySetInnerHTML={{ __html: sanitizedOutput.keyImprovements }} />}
+                            {sanitizedOutput.techniquesApplied && <div dangerouslySetInnerHTML={{ __html: sanitizedOutput.techniquesApplied }} />}
+                            {sanitizedOutput.proTip && (
                                 <div className="p-3 bg-cyan-900/30 border border-cyan-500/50 rounded-md">
-                                    <h4 className="font-semibold text-cyan-400">Pro Tip:</h4>
-                                    <p className="text-sm text-cyan-200 mt-1">{optimizerOutput.proTip}</p>
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizedOutput.proTip }} />
                                 </div>
                             )}
-
                         </div>
                     ) : (
                          <div className="flex-grow flex items-center justify-center bg-gray-900/50 rounded-lg border border-gray-700 p-4">
                             <div className="text-center text-gray-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3m6-7h3m-3 4h3m-21-4h3m-3 4h3M12 9a3 3 0 100 6 3 3 0 000-6z" />
-                                </svg>
-                                <p className="mt-2 font-semibold">Your optimized prompt will appear here.</p>
+                                {isOptimizing ? (
+                                    <svg className="animate-spin mx-auto h-10 w-10 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                ) : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3m6-7h3m-3 4h3m-21-4h3m-3 4h3M12 9a3 3 0 100 6 3 3 0 000-6z" />
+                                        </svg>
+                                        <p className="mt-2 font-semibold">Your optimized prompt will appear here.</p>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

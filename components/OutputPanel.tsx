@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { OutputFormat } from '../types';
 import { usePrompt } from '../contexts/PromptContext';
+import { sanitize } from '../utils/security';
 
 const formatOptions: { value: OutputFormat; label: string }[] = [
   { value: 'default', label: 'Default' },
@@ -24,6 +25,8 @@ const OutputPanel: React.FC = () => {
       setTimeout(() => setCopyStatus('Copy'), 2000);
     });
   };
+
+  const sanitizedOutput = useMemo(() => sanitize(generatedPrompt), [generatedPrompt]);
 
   return (
     <div className="mt-6 bg-gray-800/50 p-6 rounded-2xl border border-gray-700 flex flex-col">
@@ -53,7 +56,7 @@ const OutputPanel: React.FC = () => {
           {copyStatus}
         </button>
         <pre className="h-full w-full overflow-auto whitespace-pre-wrap text-sm text-gray-200">
-          <code>{generatedPrompt}</code>
+          <code dangerouslySetInnerHTML={{ __html: sanitizedOutput }} />
         </pre>
       </div>
     </div>
