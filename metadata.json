@@ -1,0 +1,5 @@
+{
+  "name": "AI Prompt Architect",
+  "description": "A professional tool for generating expert-designed AI video and image prompts. It takes simple subjects and optimizes them into structured, cinematic prompts in various formats like JSON, XML, and YAML, based on the principles of context engineering.",
+  "requestFramePermissions": []
+}
